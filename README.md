@@ -1,2 +1,4 @@
 # esphome_gvret
-GVRET CANbus sniffer which can be used in conjunction with ESPhHome
+GVRET CANbus sniffer which can be used in conjunction with ESPHome. Can be used in conjunction with CANbus monitoring tool SavvyCAN to remotely monitor CANbus messages by GVRET Network protocol.
+
+I used a Olimex ESP32-EVP board for this, this board has already a complete CANbus interface onboard without need for additional components.
