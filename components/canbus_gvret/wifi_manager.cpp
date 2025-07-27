@@ -34,7 +34,7 @@ void WiFiManager::loop()
             if (!SysSettings.clientNodes[i] || !SysSettings.clientNodes[i].connected())
             {
                 if (SysSettings.clientNodes[i]) SysSettings.clientNodes[i].stop();
-                SysSettings.clientNodes[i] = wifiServer.available();
+                SysSettings.clientNodes[i] = wifiServer.accept();
                 if (!SysSettings.clientNodes[i]) ESP_LOGE(TAG, "Couldn't accept client connection!");
                 else 
                 {
