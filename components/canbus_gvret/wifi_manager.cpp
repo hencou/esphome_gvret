@@ -45,7 +45,7 @@ void WiFiManager::loop()
         }
         if (i >= MAX_CLIENTS) {
             //no free/disconnected spot so reject
-            wifiServer.available().stop();
+            wifiServer.accept().stop();
         }
     }
 
