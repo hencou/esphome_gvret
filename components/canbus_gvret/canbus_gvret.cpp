@@ -56,7 +56,7 @@ bool CanbusGVRET::setup_internal() {
   canbus::CanbusTrigger *canbus_canbustrigger;
 
   canbus_canbustrigger = new canbus::CanbusTrigger(this->canbus, 0, 0, false);
-  canbus_canbustrigger->set_component_source("canbus_gvret");
+  canbus_canbustrigger->set_component_source(LOG_STR("canbus_gvret"));
   App.register_component(canbus_canbustrigger);
   automation = new Automation<std::vector<uint8_t>, uint32_t, bool>(canbus_canbustrigger);
   auto cb = [this](std::vector<uint8_t> x, uint32_t can_id, bool remote_transmission_request) -> void {
@@ -141,3 +141,4 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
