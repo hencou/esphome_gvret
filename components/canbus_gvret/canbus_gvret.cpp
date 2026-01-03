@@ -28,6 +28,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "canbus_gvret.h"
 #include "esphome/components/socket/socket.h"
+#include "esphome/components/udp/udp_component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 #include <cstdint>
@@ -57,6 +58,12 @@ void CanbusGVRET::setup() {
     });
   }
 #endif // USE_TIME
+
+  //Set UDP broadcaster
+  CanbusGVRET::udp_udpcomponent_id->set_component_source(LOG_STR("udp"));
+  CanbusGVRET::udp_udpcomponent_id->set_listen_port(17222);
+  CanbusGVRET::udp_udpcomponent_id->set_broadcast_port(17222);
+  CanbusGVRET::udp_udpcomponent_id->add_address("255.255.255.255");
 
   int index = 0;
   for (auto &bus : this->busses_) {
