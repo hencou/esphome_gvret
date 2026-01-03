@@ -12,7 +12,7 @@ from esphome.core import coroutine_with_priority
 from esphome.components import time as time_
 from esphome.components import udp
 
-DEPENDENCIES = ["canbus"]
+DEPENDENCIES = ["canbus,udp"]
 
 CONF_CAN = "can"
 
@@ -43,4 +43,5 @@ async def to_code(config):
     for canbus_config in config[CONF_CAN]:
         canbus = await cg.get_variable(canbus_config[CONF_CANBUS_ID])
         cg.add(var.add_canbus(canbus))
+
 
