@@ -13,6 +13,7 @@
 #endif
 
 #include "esphome/components/socket/socket.h"
+#include "esphome/components/udp/udp_component.h"
 #include "esphome/core/component.h"
 
 #ifdef USE_TIME
@@ -97,6 +98,8 @@ protected:
   uint16_t port_{23};
   std::unique_ptr<socket::Socket> socket_ = nullptr;
   std::unique_ptr<socket::Socket> active_connection_ = nullptr;
+
+  udp::UDPComponent *udp_udpcomponent_id = new udp::UDPComponent();
 
   CAN_FRAME build_out_frame;
 #ifdef USE_GVRET_CANFD
