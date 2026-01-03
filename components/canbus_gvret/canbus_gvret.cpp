@@ -17,6 +17,19 @@ WiFiManager wifiManager;
 GVRET_Comm_Handler serialGVRET; //gvret protocol over the serial to USB connection
 GVRET_Comm_Handler wifiGVRET; //GVRET over the wifi telnet port
 
+enum GVRETRxState {
+  WAIT_CMD,
+  WAIT_LEN,
+  WAIT_PAYLOAD
+};
+
+static GVRETRxState rx_state = WAIT_CMD;
+static uint8_t rx_cmd = 0;
+static uint8_t rx_len = 0;
+static uint8_t rx_buf[32];
+static uint8_t rx_pos = 0;
+
+static bool gvret_binary_mode = false;
 
 void CanbusGVRET::setup() {
 
@@ -141,4 +154,5 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
 
