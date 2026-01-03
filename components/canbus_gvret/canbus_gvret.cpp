@@ -28,8 +28,8 @@ void CanbusGVRET::setup() {
 
   wifiManager.setup();
 
-  settings.useBinarySerialComm = true;
-  settings.systemType = 1;
+  //settings.useBinarySerialComm = true;
+  //settings.systemType = 1;
 
   this->is_initialized = true;
   ESP_LOGCONFIG(TAG, "setup done");
@@ -145,6 +145,7 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
 
 
 
