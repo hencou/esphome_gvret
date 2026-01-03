@@ -11,7 +11,7 @@ from esphome.components.canbus import (
 from esphome.core import coroutine_with_priority
 from esphome.components import time as time_
 
-DEPENDENCIES = ["canbus", "udp"]
+DEPENDENCIES = ["canbus"]
 
 CONF_CAN = "can"
 
@@ -47,6 +47,7 @@ async def to_code(config):
         cg.Pvariable("gvret_udp", udp.UDPComponent)
     )
     await cg.register_component(udp_comp, config)
+
 
 
 
