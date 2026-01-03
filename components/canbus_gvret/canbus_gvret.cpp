@@ -311,7 +311,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
             1 // enabled
 #endif
         );
-        transmitBuffer.push_back32(busses_[0]->get_bits_per_second());
+        //transmitBuffer.push_back32(busses_[0]->get_bits_per_second());
       } else {
         transmitBuffer.push_back(0);
         transmitBuffer.push_back32(0);
@@ -329,7 +329,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
             1
 #endif
         );
-        transmitBuffer.push_back32(busses_[1]->get_bits_per_second());
+        //transmitBuffer.push_back32(busses_[1]->get_bits_per_second());
       } else {
         transmitBuffer.push_back(0);
         transmitBuffer.push_back32(0);
@@ -508,7 +508,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
         }
 #endif
         // CAN0.set_baudrate(build_int);
-        this->busses_[0]->set_bits_per_second(busSpeed);
+        //this->busses_[0]->set_bits_per_second(busSpeed);
 
       } else { // disable first canbus
 #ifdef USE_ESP32_CAN
@@ -559,7 +559,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
         }
 #endif
         // CAN1.set_baudrate(build_int);
-        this->busses_[1]->set_bits_per_second(busSpeed);
+        //this->busses_[1]->set_bits_per_second(busSpeed);
       }
 
       state = IDLE;
@@ -731,3 +731,4 @@ void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
 
 } // namespace canbus_gvret
 } // namespace esphome
+
