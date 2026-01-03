@@ -99,6 +99,8 @@ void CanbusGVRET::displayFrame(uint32_t can_id, bool use_extended_id, bool remot
     frame.data.uint8[i] = data[i];
   }
 
+  ESP_LOGI(TAG, "frame.id: %i", frame.id);
+
   wifiGVRET.sendFrameToBuffer(frame, 0);
   serialGVRET.sendFrameToBuffer(frame, 0);
 }
@@ -143,6 +145,7 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
 
 
 
