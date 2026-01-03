@@ -45,6 +45,11 @@ async def to_code(config):
         canbus = await cg.get_variable(canbus_config[CONF_CANBUS_ID])
         cg.add(var.add_canbus(canbus))
 
+    udp_comp = cg.new_Pvariable(
+        cg.Pvariable("gvret_udp", udp.UDPComponent)
+    )
+    await cg.register_component(udp_comp, config)
+
 
 
 
