@@ -129,12 +129,6 @@ void CanbusGVRET::loop() {
       }
   }
 
-  while (client_.available()) {
-    uint8_t b = client_.read();
-    handle_rx_byte_(b);
-  }
-
-
   serialCnt = 0;
   while ( (Serial.available() > 0) && serialCnt < 128 ) 
   {
@@ -146,6 +140,7 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
 
 
 
