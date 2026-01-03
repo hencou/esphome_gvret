@@ -114,6 +114,108 @@ void CanbusGVRET::displayFrame(uint32_t can_id, bool use_extended_id, bool remot
   serialGVRET.sendFrameToBuffer(frame, 0);
 }
 
+void CanbusGVRET::handle_rx_byte_(uint8_t b) {
+  switch (rx_state) {
+    case WAIT_CMD:
+      rx_cmd = b;
+      rx_state = WAIT_LEN;
+      break;
+
+    case WAIT_LEN:
+      rx_len = b;
+      rx_pos = 0;
+      if (rx_len == 0) {
+        handle_gvret_command_(rx_cmd, nullptr, 0);
+        rx_state = WAIT_CMD;
+      } else {
+        rx_state = WAIT_PAYLOAD;
+      }
+      break;
+
+    case WAIT_PAYLOAD:
+      rx_buf[rx_pos++] = b;
+      if (rx_pos >= rx_len) {
+        handle_gvret_command_(rx_cmd, rx_buf, rx_len);
+        rx_state = WAIT_CMD;
+      }
+      break;
+  }
+}
+
+void CanbusGVRET::handle_rx_byte_(uint8_t b) {
+  switch (rx_state) {
+    case WAIT_CMD:
+      rx_cmd = b;
+      rx_state = WAIT_LEN;
+      break;
+
+    case WAIT_LEN:
+      rx_len = b;
+      rx_pos = 0;
+      if (rx_len == 0) {
+        handle_gvret_command_(rx_cmd, nullptr, 0);
+        rx_state = WAIT_CMD;
+      } else {
+        rx_state = WAIT_PAYLOAD;
+      }
+      break;
+
+    case WAIT_PAYLOAD:
+      rx_buf[rx_pos++] = b;
+      if (rx_pos >= rx_len) {
+        handle_gvret_command_(rx_cmd, rx_buf, rx_len);
+        rx_state = WAIT_CMD;
+      }
+      break;
+  }
+}
+
+void CanbusGVRET::handle_gvret_command_(uint8_t cmd, uint8_t *data, uint8_t len) {
+
+  switch (cmd) {
+
+    case 0xE7:  // ENTER BINARY MODE
+      gvret_binary_mode = true;
+      ESP_LOGI("gvret", "GVRET binary mode enabled");
+      send_ack_();
+      break;
+
+    case 0xE0:  // SET BITRATE
+      if (len >= 2) {
+        uint16_t bitrate = (data[0] << 8) | data[1];
+        ESP_LOGI("gvret", "Set bitrate %u", bitrate);
+      }
+      send_ack_();
+      break;
+
+    case 0xE1:  // START CAN
+      ESP_LOGI("gvret", "CAN start");
+      send_ack_();
+      break;
+
+    case 0xF1:  // CAN FRAME FROM SAVVYCAN
+      if (len >= 6) {
+        canbus::CanFrame frame;
+        frame.id = (data[0] << 24) | (data[1] << 16) |
+                   (data[2] << 8) | data[3];
+        frame.dlc = data[4];
+        memcpy(frame.data, &data[5], frame.dlc);
+        this->canbus_->send(frame);
+      }
+      break;
+
+    default:
+      ESP_LOGW("gvret", "Unknown GVRET cmd 0x%02X", cmd);
+      break;
+  }
+}
+
+void CanbusGVRET::send_ack_() {
+  uint8_t ack[2] = {0xE7, 0x00};
+  this->write_bytes_(ack, 2);
+}
+
+
 void CanbusGVRET::loop() {
 
   if (!is_initialized)
@@ -154,5 +256,6 @@ void CanbusGVRET::loop() {
 
 }  // namespace canbus_gvret
 }  // namespace esphome
+
 
 
