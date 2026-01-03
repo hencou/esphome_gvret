@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "canbus_gvret.h"
 #include "esphome/components/socket/socket.h"
-#include "esphome/components/udp/udp_component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 #include <cstdint>
@@ -782,5 +781,6 @@ void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
 
 } // namespace canbus_gvret
 } // namespace esphome
+
 
 
