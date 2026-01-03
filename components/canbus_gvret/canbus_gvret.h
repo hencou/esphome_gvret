@@ -1,6 +1,9 @@
 #pragma once
 
 #include "esphome/core/defines.h"
+#include "esphome/core/component.h"
+#include <lwip/sockets.h>
+#include <lwip/inet.h>
 
 #include "commbuffer.h"
 #include <cstdint>
@@ -13,7 +16,6 @@
 #endif
 
 #include "esphome/components/socket/socket.h"
-#include "esphome/components/udp/udp_component.h"
 #include "esphome/core/component.h"
 
 #ifdef USE_TIME
@@ -87,7 +89,6 @@ protected:
   uint8_t checksumCalc(uint8_t *buffer, int length);
   void setOutput(uint8_t which, bool active);
 
-protected:
   std::vector<Canbus *> busses_;
 #ifdef USE_TIME
   time::RealTimeClock *rtc_ = nullptr;
@@ -99,7 +100,10 @@ protected:
   std::unique_ptr<socket::Socket> socket_ = nullptr;
   std::unique_ptr<socket::Socket> active_connection_ = nullptr;
 
-  udp::UDPComponent *udp_udpcomponent_id = new udp::UDPComponent();
+  void send_udp_broadcast_();
+  int udp_sock_{-1};
+  sockaddr_in broadcast_addr_{};
+  uint32_t last_broadcast_{0};
 
   CAN_FRAME build_out_frame;
 #ifdef USE_GVRET_CANFD
@@ -118,3 +122,4 @@ protected:
 
 } // namespace canbus_gvret
 } // namespace esphome
+
