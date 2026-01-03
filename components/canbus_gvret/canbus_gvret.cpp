@@ -48,6 +48,11 @@ bool is_would_block(ssize_t ret) {
   return ret == 0;
 }
 
+// static GVRET broadcast frame
+static const uint8_t GVRET_BROADCAST_DATA[4] = {
+  0x1C, 0xEF, 0xAC, 0xED
+};
+
 void CanbusGVRET::setup() {
 #ifdef USE_TIME
   if (this->rtc_) {
@@ -60,10 +65,21 @@ void CanbusGVRET::setup() {
 #endif // USE_TIME
 
   //Set UDP broadcaster
-  CanbusGVRET::udp_udpcomponent_id->set_component_source(LOG_STR("udp"));
-  CanbusGVRET::udp_udpcomponent_id->set_listen_port(17222);
-  CanbusGVRET::udp_udpcomponent_id->set_broadcast_port(17222);
-  CanbusGVRET::udp_udpcomponent_id->add_address("255.255.255.255");
+  ESP_LOGI(TAG, "Initializing UDP broadcast socket");
+  udp_sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (udp_sock_ < 0) {
+    ESP_LOGE(TAG, "Failed to create UDP socket");
+    return;
+  }
+
+  int enable = 1;
+  setsockopt(udp_sock_, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
+
+  broadcast_addr_.sin_family = AF_INET;
+  broadcast_addr_.sin_port = htons(17222);
+  broadcast_addr_.sin_addr.s_addr = inet_addr("255.255.255.255");
+
+  last_broadcast_ = 0;
 
   int index = 0;
   for (auto &bus : this->busses_) {
@@ -132,8 +148,36 @@ void CanbusGVRET::setup() {
   }
 }
 
+void CanbusGvret::send_udp_broadcast_() {
+  if (udp_sock_ < 0) {
+    return;
+  }
+
+  const int sent = sendto(
+    udp_sock_,
+    GVRET_BROADCAST_DATA,
+    sizeof(GVRET_BROADCAST_DATA),
+    0,
+    reinterpret_cast<sockaddr *>(&broadcast_addr_),
+    sizeof(broadcast_addr_)
+  );
+
+  if (sent < 0) {
+    ESP_LOGW(TAG, "UDP broadcast send failed");
+  } else {
+    ESP_LOGD(TAG, "UDP broadcast sent (%d bytes)", sent);
+  }
+}
+
 void CanbusGVRET::loop() {
   this->last_loop_time_ = micros();
+  
+  const uint32_t now = millis();
+  if (now - last_broadcast_ >= 1000) {
+    last_broadcast_ = now;
+    send_udp_broadcast_();
+  }
+ 
   for (;;) {
     struct sockaddr_storage source_addr;
     socklen_t addr_len = sizeof(source_addr);
@@ -738,4 +782,5 @@ void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
 
 } // namespace canbus_gvret
 } // namespace esphome
+
 
