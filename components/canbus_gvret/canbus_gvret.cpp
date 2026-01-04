@@ -32,6 +32,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "esphome/core/log.h"
 #include <cstdint>
 #include <sys/types.h>
+#include "lwip/sockets.h"
+#include "lwip/inet.h"
 
 namespace esphome {
 namespace canbus_gvret {
@@ -65,14 +67,14 @@ void CanbusGVRET::setup() {
 
   //Set UDP broadcaster
   ESP_LOGI(TAG, "Initializing UDP broadcast socket");
-  udp_sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  udp_sock_ = lwip_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (udp_sock_ < 0) {
     ESP_LOGE(TAG, "Failed to create UDP socket");
     return;
   }
 
-  int enable = 1;
-  setsockopt(udp_sock_, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
+  int udp_enable = 1;
+  lwip_setsockopt(udp_sock_, SOL_SOCKET, SO_BROADCAST, &udp_enable, sizeof(udp_enable));
 
   broadcast_addr_.sin_family = AF_INET;
   broadcast_addr_.sin_port = htons(17222);
@@ -147,12 +149,12 @@ void CanbusGVRET::setup() {
   }
 }
 
-void CanbusGvret::send_udp_broadcast_() {
+void CanbusGVRET::send_udp_broadcast_() {
   if (udp_sock_ < 0) {
     return;
   }
 
-  const int sent = sendto(
+  const int sent = lwip_sendto(
     udp_sock_,
     GVRET_BROADCAST_DATA,
     sizeof(GVRET_BROADCAST_DATA),
