@@ -191,7 +191,7 @@ void CanbusGVRET::loop() {
     ESP_LOGD(TAG, "Accepted %s", sock->getpeername().c_str());
 
     if (this->active_connection_) {
-      ESP_LOGW(TAG, "Already connected. Closing new connection %s",
+      ESP_LOGD(TAG, "Already connected. Closing new connection %s",
                sock->getpeername().c_str());
       sock->close();
       continue;
@@ -783,6 +783,7 @@ void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
 
 } // namespace canbus_gvret
 } // namespace esphome
+
 
 
 
