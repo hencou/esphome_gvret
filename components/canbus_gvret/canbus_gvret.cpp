@@ -188,11 +188,10 @@ void CanbusGVRET::loop() {
 
     ESP_LOGD(TAG, "Setting non-blocking");
     sock->setblocking(false);
-    ESP_LOGD(TAG, "Accepted %s", sock->getpeername().c_str());
+    ESP_LOGD(TAG, "Accepted");
 
     if (this->active_connection_) {
-      ESP_LOGD(TAG, "Already connected. Closing new connection %s",
-               sock->getpeername().c_str());
+      ESP_LOGW(TAG, "Already connected. Closing new connection");
       sock->close();
       continue;
     }
@@ -783,6 +782,7 @@ void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
 
 } // namespace canbus_gvret
 } // namespace esphome
+
 
 
 
