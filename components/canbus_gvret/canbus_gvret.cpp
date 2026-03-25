@@ -201,6 +201,7 @@ void CanbusGVRET::loop() {
 
   if (!this->active_connection_) {
     ESP_LOGVV(TAG, "No active connection. Return.");
+   clearBufferedBytes();
     return;
   }
 
