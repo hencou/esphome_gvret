@@ -48,38 +48,32 @@ void CommBuffer::sendByteToBuffer(uint8_t byt) {
 }
 
 void CommBuffer::sendString(const std::string &str) {
-  sendCharString(str.c_str());
+  transmitBuffer.insert(transmitBuffer.end(), str.begin(), str.end());
+  ESP_LOGV(TAG, "Queued %zu bytes", str.size());
 }
 
 void CommBuffer::sendCharString(const char *str) {
-  const char *p = str;
-  int i = 0;
-  while (*p) {
-    sendByteToBuffer(*p++);
-    i++;
-  }
-  ESP_LOGV(TAG, "Queued %i bytes", i);
+  const size_t len = strlen(str);
+  transmitBuffer.insert(transmitBuffer.end(), str, str + len);
+  ESP_LOGV(TAG, "Queued %zu bytes", len);
 }
 
-void CommBuffer::sendFrameToBuffer(CAN_FRAME &frame, int whichBus) {
-  uint8_t temp;
-  size_t writtenBytes;
+void CommBuffer::sendFrameToBuffer(const CAN_FRAME &frame, int whichBus) {
   if (this->useBinarySerialComm) {
+    uint32_t can_id = frame.can_id;
     if (frame.use_extended_id)
-      frame.can_id |= 1 << 31;
+      can_id |= 1 << 31;
     transmitBuffer.push_back(0xF1);
     transmitBuffer.push_back(0); // 0 = canbus frame sending
     uint32_t now = micros();
     transmitBuffer.push_back32(now);
-    transmitBuffer.push_back32(frame.can_id);
+    transmitBuffer.push_back32(can_id);
     transmitBuffer.push_back(frame.can_data_length_code +
                              (uint8_t)(whichBus << 4));
-    for (int c = 0; c < frame.can_data_length_code; c++) {
-      transmitBuffer.push_back(frame.data[c]);
-    }
+    transmitBuffer.insert(transmitBuffer.end(), frame.data,
+                          frame.data + frame.can_data_length_code);
     // temp = checksumCalc(buff, 11 + frame.length);
-    temp = 0;
-    transmitBuffer.push_back(temp);
+    transmitBuffer.push_back(0);
     // Serial.write(buff, 12 + frame.length);
   } else {
     transmitBuffer.printf("%d - %x", micros(), frame.can_id);
@@ -96,25 +90,23 @@ void CommBuffer::sendFrameToBuffer(CAN_FRAME &frame, int whichBus) {
 }
 #ifdef USE_GVRET_CANFD
 
-void CommBuffer::sendFrameToBuffer(CAN_FRAME_FD &frame, int whichBus) {
-  uint8_t temp;
-  size_t writtenBytes;
+void CommBuffer::sendFrameToBuffer(const CAN_FRAME_FD &frame, int whichBus) {
   if (settings.useBinarySerialComm) {
+    uint32_t id = frame.id;
     if (frame.extended)
-      frame.id |= 1 << 31;
+      id |= 1 << 31;
     transmitBuffer.push_back(0xF1);
     transmitBuffer.push_back(PROTO_BUILD_FD_FRAME);
     uint32_t now = micros();
     transmitBuffer.push_back32(now);
-    transmitBuffer.push_back32(frame.id);
+    transmitBuffer.push_back32(id);
     transmitBuffer.push_back(frame.length);
     transmitBuffer.push_back((uint8_t)(whichBus));
     for (int c = 0; c < frame.length; c++) {
       transmitBuffer.push_back(frame.data.uint8[c]);
     }
     // temp = checksumCalc(buff, 11 + frame.length);
-    temp = 0;
-    transmitBuffer.push_back(temp);
+    transmitBuffer.push_back(0);
     // Serial.write(buff, 12 + frame.length);
   } else {
     transmitBuffer.printf("%d - %x", micros(), frame.id);

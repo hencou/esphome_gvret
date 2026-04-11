@@ -42,7 +42,7 @@ static const char *const TAG = "canbus_gvret";
 constexpr uint16_t CFG_BUILD_NUM = 618;
 
 /// Is the given return value (from write syscalls) a wouldblock error?
-bool is_would_block(ssize_t ret) {
+static bool is_would_block(ssize_t ret) {
   if (ret == -1) {
     return errno == EWOULDBLOCK || errno == EAGAIN;
   }
@@ -205,17 +205,24 @@ void CanbusGVRET::loop() {
     return;
   }
 
-  while (!transmitBuffer.empty()) {
-    ESP_LOGVV(TAG, "Transmitting %zu bytes to socket", transmitBuffer.size());
-    ssize_t sent = this->active_connection_->write(transmitBuffer.data(),
-                                                   transmitBuffer.size());
-    if (is_would_block(sent)) {
-      break;
-    } else if (sent == -1) {
-      ESP_LOGW(TAG, "Socket write failed with errno %d", errno);
-      this->state = IDLE; // TODO: make sure it's the one we like
+  {
+    size_t offset = 0;
+    while (offset < transmitBuffer.size()) {
+      ESP_LOGVV(TAG, "Transmitting %zu bytes to socket", transmitBuffer.size() - offset);
+      ssize_t sent = this->active_connection_->write(transmitBuffer.data() + offset,
+                                                     transmitBuffer.size() - offset);
+      if (is_would_block(sent)) {
+        break;
+      } else if (sent == -1) {
+        ESP_LOGW(TAG, "Socket write failed with errno %d", errno);
+        this->state = IDLE; // TODO: make sure it's the one we like
+        break;
+      }
+      offset += sent;
     }
-    transmitBuffer.erase(transmitBuffer.begin(), transmitBuffer.begin() + sent);
+    if (offset > 0) {
+      transmitBuffer.erase(transmitBuffer.begin(), transmitBuffer.begin() + offset);
+    }
   }
 
   if (!this->active_connection_->ready())
@@ -351,7 +358,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
       // immediately return data on canbus params
       transmitBuffer.push_back(0xF1);
       transmitBuffer.push_back(6);
-      if (this->busses_.size() > 0) {
+      if (!this->busses_.empty()) {
         transmitBuffer.push_back(
 #ifdef USE_ESP32_CAN
             (uint8_t(this->busses_[0]->get_enabled()) ? 1 : 0) +
@@ -599,7 +606,7 @@ void CanbusGVRET::processIncomingByte(uint8_t in_byte) {
                                       // status are also being passed
         {
           busses_[1]->set_enabled(build_int & 0x40000000ul);
-          this->busses_[0]->set_tx_mode(
+          this->busses_[1]->set_tx_mode(
               build_int & 0x20000000ul
                   ? esp32_can::TXMode::LISTEN_ONLY
                   : esp32_can::TXMode::NO_ACK); // TODO: make sure NO_ACK is
@@ -770,7 +777,7 @@ void CanbusGVRET::setOutput(uint8_t which, bool active) {
   //              : digitalWrite(out[which], active ? LOW : HIGH);
 }
 
-void CanbusGVRET::displayFrame(CAN_FRAME &frame, int whichBus) {
+void CanbusGVRET::displayFrame(const CAN_FRAME &frame, int whichBus) {
 #ifdef USE_LAWICE_MODE
   if (settings.enableLawicel && lawicelMode) {
     lawicel.sendFrameToBuffer(frame, whichBus);
