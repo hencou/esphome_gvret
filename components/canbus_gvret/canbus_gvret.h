@@ -16,7 +16,6 @@
 #endif
 
 #include "esphome/components/socket/socket.h"
-#include "esphome/core/component.h"
 
 #ifdef USE_TIME
 #include "esphome/components/time/real_time_clock.h"
@@ -84,7 +83,7 @@ public:
 #endif
 protected:
   void toggleRXLED() {}
-  void displayFrame(CAN_FRAME &frame, int whichBus);
+  void displayFrame(const CAN_FRAME &frame, int whichBus);
   void processIncomingByte(uint8_t in_byte);
   uint8_t checksumCalc(uint8_t *buffer, int length);
   void setOutput(uint8_t which, bool active);

@@ -19,10 +19,10 @@ public:
   size_t numAvailableBytes() const { return transmitBuffer.size(); }
 
   void clearBufferedBytes() { transmitBuffer.clear(); }
-  void sendFrameToBuffer(CAN_FRAME &frame, int whichBus);
+  void sendFrameToBuffer(const CAN_FRAME &frame, int whichBus);
   void setUseBinarySerialComm(bool arg) { this->useBinarySerialComm = arg; }
 #ifdef USE_GVRET_CANFD
-  void sendFrameToBuffer(CAN_FRAME_FD &frame, int whichBus);
+  void sendFrameToBuffer(const CAN_FRAME_FD &frame, int whichBus);
 #endif
   void sendBytesToBuffer(uint8_t *bytes, size_t length);
   void sendByteToBuffer(uint8_t byte);
@@ -45,7 +45,7 @@ public:
       va_list args;
 
       va_start(args, fmt);
-      const auto length = snprintf(nullptr, 0, fmt, args);
+      const auto length = vsnprintf(nullptr, 0, fmt, args);
       va_end(args);
       if (length < 0)
         return length;
@@ -54,8 +54,11 @@ public:
       this->resize(prevSize + length + 1);
 
       va_start(args, fmt);
-      const auto ret = snprintf(reinterpret_cast<char*>(this->data() + prevSize), length + 1, fmt, args);
+      const auto ret = vsnprintf(reinterpret_cast<char*>(this->data() + prevSize), length + 1, fmt, args);
       va_end(args);
+
+      // Remove the null terminator — only the formatted content belongs in the buffer
+      this->resize(prevSize + (ret >= 0 ? ret : 0));
 
       return ret;
     }
